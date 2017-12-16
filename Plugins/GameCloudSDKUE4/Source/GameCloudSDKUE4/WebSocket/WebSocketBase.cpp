@@ -149,6 +149,7 @@ void UWebSocketBase::Connect( const FString& uri, const TMap<FString, FString>& 
 	mHeaderMap = header;
 }
 
+// WARNING : Doesn't work! Nothing is received by websocket server.
 void UWebSocketBase::SendRawData_CharPtr( const char* data )
 {
 	if ( sizeof( data ) > MAX_ECHO_PAYLOAD )
@@ -167,6 +168,7 @@ void UWebSocketBase::SendRawData_CharPtr( const char* data )
 	}
 }
 
+// NOTE : The only function that works with websocket server!
 void UWebSocketBase::SendRawData_StdString( std::string data )
 {
 	if ( sizeof( data ) > MAX_ECHO_PAYLOAD )
@@ -185,6 +187,7 @@ void UWebSocketBase::SendRawData_StdString( std::string data )
 	}
 }
 
+// WARNING : Doesn't work! Rubbish received by websocket server.
 void UWebSocketBase::SendText( const FString& data )
 {
 	if ( data.Len() > MAX_ECHO_PAYLOAD )
@@ -259,6 +262,10 @@ void UWebSocketBase::ProcessWriteable_StdString()
 void UWebSocketBase::ProcessRead( const char* in, int len )
 {
 	FString strData = UTF8_TO_TCHAR( in );
+	UCommonFunctions::PrintFStringOnScreen( 30.0f, FColor::Orange, "WebSocketBase::ProcessRead : " + strData );
+	UCommonFunctions::PrintFStringOnScreen( 30.0f, FColor::Orange, FString::FromInt( OnReceiveData.GetAllObjects().Num() ) );
+	
+
 	OnReceiveData.Broadcast( strData );
 }
 

@@ -157,34 +157,37 @@ void ASpawnPoint::Spawn()
 
 						if ( nullptr != ActorSpawned_ )
 						{
-							// set location again
-							spawnLocationFound = ActorSpawned_->GetActorLocation();
-							// spawn particles
-							if ( nullptr != ParticleToSpawn_.Particle_ )
+							if ( ensureAlwaysMsgf( nullptr != FindPointByShape, *FString( "Allow spawn point to run BeginPlay() before running Spawn()" ) ) )
 							{
-								UParticleSystemComponent* particle = UGameplayStatics::SpawnEmitterAtLocation( world, ParticleToSpawn_.Particle_, spawnLocationFound );
-								if ( particle )
-									particle->SetRelativeScale3D( ParticleToSpawn_.Scale_ );
-								ParticleDelayLeft_ = ParticleToSpawn_.Delay_;
-								SpawnPointState_ = SpawnPointState::SPAWNING_PARTICLES;
+								// set location again
+								spawnLocationFound = ActorSpawned_->GetActorLocation();
+								// spawn particles
+								if ( nullptr != ParticleToSpawn_.Particle_ )
+								{
+									UParticleSystemComponent* particle = UGameplayStatics::SpawnEmitterAtLocation( world, ParticleToSpawn_.Particle_, spawnLocationFound );
+									if ( particle )
+										particle->SetRelativeScale3D( ParticleToSpawn_.Scale_ );
+									ParticleDelayLeft_ = ParticleToSpawn_.Delay_;
+									SpawnPointState_ = SpawnPointState::SPAWNING_PARTICLES;
+								}
+
+								//play sound
+								if ( nullptr != SoundToSpawn_.Sound_ )
+								{ UGameplayStatics::PlaySoundAtLocation( world, SoundToSpawn_.Sound_, spawnLocationFound, SoundToSpawn_.VolumeMultiplier_ ); }
+
+								// set up actor		
+								ActorSpawned_->OnDestroyed.AddDynamic( this, &ASpawnPoint::ActorDestroyed );
+								// set actor spawn counters
+								SpawnedActors_.Add( UKismetSystemLibrary::GetDisplayName( ActorSpawned_ ), ActorSpawned_ );
+								CurrentSpawnedCount_++;
+								Cooldown_ = BaseDelayBetweenSpawn_;
+								if ( 0.0 < AdditionalDelayRange_ )
+									Cooldown_ += UKismetMathLibrary::RandomFloatInRange( 0.0f, AdditionalDelayRange_ );
+								if ( SpawnPointState::SPAWNING_PARTICLES != SpawnPointState_ )
+								{ SpawnPointState_ = SpawnPointState::COOLING_DOWN; }
+								else
+								{ ActorSpawned_->SetActorHiddenInGame( true ); }
 							}
-
-							//play sound
-							if ( nullptr != SoundToSpawn_.Sound_ )
-							{ UGameplayStatics::PlaySoundAtLocation( world, SoundToSpawn_.Sound_, spawnLocationFound, SoundToSpawn_.VolumeMultiplier_ ); }
-
-							// set up actor		
-							ActorSpawned_->OnDestroyed.AddDynamic( this, &ASpawnPoint::ActorDestroyed );
-							// set actor spawn counters
-							SpawnedActors_.Add( UKismetSystemLibrary::GetDisplayName( ActorSpawned_ ), ActorSpawned_ );
-							CurrentSpawnedCount_++;
-							Cooldown_ = BaseDelayBetweenSpawn_;
-							if ( 0.0 < AdditionalDelayRange_ )
-								Cooldown_ += UKismetMathLibrary::RandomFloatInRange( 0.0f, AdditionalDelayRange_ );
-							if ( SpawnPointState::SPAWNING_PARTICLES != SpawnPointState_ )
-							{ SpawnPointState_ = SpawnPointState::COOLING_DOWN; }
-							else
-							{ ActorSpawned_->SetActorHiddenInGame( true ); }
 						}
 
 						// enable Tick() only for individual SpawnPoint
@@ -360,6 +363,10 @@ FVector ASpawnPoint::FindPointToSpawnInBoxVolume()
 void ASpawnPoint::ActorDestroyed( AActor* DestroyedActor )
 {
 	SpawnedActors_.Remove( UKismetSystemLibrary::GetDisplayName( DestroyedActor ) );
+
+	// update SpawnPointState_
+	FString reason;
+	IsReadyToSpawn( SpawnPointState_, reason );
 
 	// inform SpawnSystem
 	if ( nullptr != SpawnSystem_ )

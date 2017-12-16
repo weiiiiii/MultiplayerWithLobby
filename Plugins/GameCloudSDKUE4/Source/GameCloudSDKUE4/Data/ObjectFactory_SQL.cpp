@@ -8,6 +8,7 @@
 // includes Engine files
 #include "Engine/GameInstance.h"
 #include "Engine/World.h"
+#include "Paths.h"
 #include "GameFramework/GameMode.h"
 // include plugin files
 // includes third party files
@@ -97,18 +98,38 @@ AActor* UObjectFactory_SQL::SpawnActorFromDatabase( FString IdToSpawn, FTransfor
 				FString* blueprintPath	= itemData.Cells.Find( BlueprintPathIdentifier );
 				if ( nullptr != blueprintPath )
 				{
-					TSubclassOf<UObject> blueprintClass	= GetBlueprintClass( *blueprintPath );
 					FActorSpawnParameters params;
 					params.Owner	= Owner;
+					params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 					APawn* pawn		= Cast<APawn>( Owner );
 					if ( nullptr != pawn )
 					{ params.Instigator	= pawn; }
+
+					UClass* blueprintClass	= GetBlueprintClass( *blueprintPath ); 
 					if ( ensureAlwaysMsgf( nullptr != blueprintClass, *FString( "Blueprint does not exist @ " + *blueprintPath ) ) )
 					{
 						toReturn		= world->SpawnActor<AActor>( blueprintClass, Transform, params );
-						FVector scale	= Transform.GetScale3D();
-						toReturn->SetActorRelativeScale3D( scale );
-					}
+						if (nullptr != toReturn)
+						{
+							FVector scale = Transform.GetScale3D ();
+							toReturn->SetActorRelativeScale3D (scale);
+						}
+						else
+						{
+							UCommonFunctions::PrintFStringOnScreen (5.0f, FColor::Red, "Unable to spawn " + IdToSpawn);
+							UCommonFunctions::PrintToLog ("Unable to spawn " + IdToSpawn);
+						}
+					} //if ( ensureAlwaysMsgf( nullptr != blueprintClass, *FString( "Blueprint does not exist @ " + *blueprintPath ) ) )
+
+					//TSubclassOf<UObject> theClass	= TestFunc( FName( "Name" ), *(*blueprintPath ) );
+					//if ( nullptr != theClass )
+					//{
+					//	world->SpawnActor<AActor>( theClass, Transform, params );
+					//	UCommonFunctions::PrintFStringOnScreen( 5.0f, FColor::Green, "New way to get class SUCCEEDED!" );
+					//}
+					//else
+					//{ UCommonFunctions::PrintFStringOnScreen( 5.0f, FColor::Red, "New way to get class FAILED!" ); }
+
 				} //if ( nullptr != blueprintPath )
 			} //if ( 0 < SQLiteFieldsArray.Num() )
 		} //if ( !SQLiteTableName.IsEmpty() )
@@ -173,6 +194,11 @@ TArray<FSQLiteRow> UObjectFactory_SQL::GetAllData()
 	return result;
 }
 
+bool UObjectFactory_SQL::IsFileExist( FString path )
+{
+	return FPaths::FileExists( path );
+}
+
 int UObjectFactory_SQL::CountNumberOfDelimiterInString( FString ToCount, FString Delimiter )
 {
 	int toReturn	= 0;
@@ -187,18 +213,97 @@ int UObjectFactory_SQL::CountNumberOfDelimiterInString( FString ToCount, FString
 	return toReturn;
 }
 
-TSubclassOf<class UObject> UObjectFactory_SQL::GetBlueprintClass( const FString BlueprintClassPath )
+FString UObjectFactory_SQL::EscapeInvertedCommaForTextValue( FString Query )
 {
-	TSubclassOf<class UObject> toReturn	= nullptr;
-	const TCHAR* path			= *BlueprintClassPath;
-	UObject* tempObject			= StaticLoadObject( UObject::StaticClass(), nullptr, path );
-	if ( nullptr != tempObject )
+	FString toReturn;
+
+	FString valueKey	= "VALUES";
+	int index	= Query.Find( valueKey, ESearchCase::CaseSensitive, ESearchDir::FromStart );
+	if ( -1 != index )
 	{
-		UBlueprint* blueprintObject = Cast<UBlueprint>( tempObject );
-		if ( nullptr != blueprintObject )
-		{ toReturn		= (UClass*)blueprintObject->GeneratedClass; }
+		// Find out why this part removes too much data, all the way up to BMW5...
+		toReturn	+= Query.Left( index + valueKey.Len() );
+		Query.RemoveAt( 0, index + valueKey.Len() );
+		// Remove all whitespace from INSERT INTO query, which is always the second query
+		Query	= RemoveFromString( Query, " " );
+
+		TArray<FString> rows	= SplitStringWithDelimiter( Query, ")", true );
+		for ( int rowIndex = 0; rowIndex < rows.Num(); rowIndex++ )
+		{
+			FString row	= rows[rowIndex];
+			TArray<FString> values	= SplitStringWithDelimiter( row, ",", true );
+			for ( int valueIndex = 0; valueIndex < values.Num(); valueIndex++ )
+			{
+				FString value	= values[valueIndex];
+				int count	= CountNumberOfDelimiterInString( value, "'" );
+				if ( 2 < count )
+				{
+					FString tempStr;
+					for ( int i = 0; i < count - 1; i++ )
+					{
+						index	= value.Find( "'", ESearchCase::IgnoreCase, ESearchDir::FromStart );
+						tempStr	+= value.Left( index + 1 );
+						value.RemoveAt( 0, index + 1 );
+						if ( 0 < i )
+						{ tempStr	+= "'"; }
+					}
+					tempStr	+= value;
+					values[valueIndex]	= tempStr;
+				}
+			}
+
+			row.Empty();
+			for ( int valueIndex = 0; valueIndex < values.Num(); valueIndex++ )
+			{
+				FString value	= values[valueIndex];
+				row	+= value;
+			}
+			rows[rowIndex]	= row;
+		}
+
+		for ( int rowIndex = 0; rowIndex < rows.Num(); rowIndex++ )
+		{
+			FString row	= rows[rowIndex];
+			toReturn	+= row;
+		}
 	}
-	return toReturn;
+	return  toReturn;
+}
+
+UClass* UObjectFactory_SQL::GetBlueprintClass( FString BlueprintPath )
+{
+	// remove "Blueprints'"
+	BlueprintPath.RemoveFromStart( "Blueprint'" );
+	// remove ".xxx"
+	int index			= BlueprintPath.Find( ".", ESearchCase::IgnoreCase, ESearchDir::FromEnd );
+	FString pathToUse	= BlueprintPath.Left( index );
+	// add ".uasset" to pathToUse
+	pathToUse.Append( ".uasset" );
+	const FString FilePath = FPackageName::LongPackageNameToFilename( pathToUse );
+	UPackage* Package = FindPackage( NULL, *FilePath );
+
+	//TOFIX Improve as this might be slow to search
+	// and not thread safe!
+
+
+	if ( Package )
+	  Package->FullyLoad();
+	else
+	  Package = LoadPackage( NULL, *FilePath, LOAD_None );
+
+	TArray<UObject*> objects;
+	TArray<UClass*> classes;
+	if ( Package )
+	{
+		EngineUtils::EAssetToLoad type	= EngineUtils::ATL_Class;
+		ForEachObjectWithOuter( Package, [type, &classes]( UObject* Object )
+		{
+			if ( Object->IsA<UClass>() )
+				classes.Add( ( Cast<UClass>( Object ) ) );
+		} );
+	}
+
+	return 0 < classes.Num () ? classes[0] : nullptr; 
 }
 
 void UObjectFactory_SQL::PopulateSQLiteFields( FString CreateTableQuery )
@@ -321,59 +426,11 @@ TArray<FString> UObjectFactory_SQL::SplitStringWithDelimiter( FString ToSplit, F
 	return toReturn;
 }
 
-FString UObjectFactory_SQL::EscapeInvertedCommaForTextValue( FString Query )
+#include "ConstructorHelpers.h"
+TSubclassOf<UObject> UObjectFactory_SQL::TestFunc( FName Name, const TCHAR* Path )
 {
-	FString toReturn;
-
-	FString valueKey	= "VALUES";
-	int index	= Query.Find( valueKey, ESearchCase::CaseSensitive, ESearchDir::FromStart );
-	if ( -1 != index )
-	{
-		// Find out why this part removes too much data, all the way up to BMW5...
-		toReturn	+= Query.Left( index + valueKey.Len() );
-		Query.RemoveAt( 0, index + valueKey.Len() );
-		// Remove all whitespace from INSERT INTO query, which is always the second query
-		Query	= RemoveFromString( Query, " " );
-		
-		TArray<FString> rows	= SplitStringWithDelimiter( Query, ")", true );
-		for ( int rowIndex = 0; rowIndex < rows.Num(); rowIndex++ )
-		{
-			FString row	= rows[rowIndex];
-			TArray<FString> values	= SplitStringWithDelimiter( row, ",", true );
-			for ( int valueIndex = 0; valueIndex < values.Num(); valueIndex++ )
-			{
-				FString value	= values[valueIndex];
-				int count	= CountNumberOfDelimiterInString( value, "'" );
-				if ( 2 < count )
-				{
-					FString tempStr;
-					for ( int i = 0; i < count - 1; i++ )
-					{
-						index	= value.Find( "'", ESearchCase::IgnoreCase, ESearchDir::FromStart );
-						tempStr	+= value.Left( index + 1 );
-						value.RemoveAt( 0, index + 1 );
-						if ( 0 < i )
-						{ tempStr	+= "'"; }
-					}
-					tempStr	+= value;
-					values[valueIndex]	= tempStr;
-				}
-			}
-
-			row.Empty();
-			for ( int valueIndex = 0; valueIndex < values.Num(); valueIndex++ )
-			{
-				FString value	= values[valueIndex];
-				row	+= value;
-			}
-			rows[rowIndex]	= row;
-		}
-
-		for ( int rowIndex = 0; rowIndex < rows.Num(); rowIndex++ )
-		{
-			FString row	= rows[rowIndex];
-			toReturn	+= row;
-		}
-	}
-	return  toReturn;
+	//TMap<FName, TSubclassOf<class UObject>> Classes;
+	ConstructorHelpers::FClassFinder<UObject> BP( Path );
+	//Classes.Add( Name, BP.Class );
+	return BP.Class;
 }

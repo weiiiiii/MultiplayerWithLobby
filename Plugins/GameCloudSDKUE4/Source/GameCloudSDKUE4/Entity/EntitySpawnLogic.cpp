@@ -88,6 +88,8 @@ void UEntitySpawnLogic::RemovePart( const FString& TypeString )
 		for ( AActor* actor : actors )
 		{ actor->Destroy(); }
 
+		iter->second.clear();
+
 		std::map<std::string, FString>::iterator iter	= SpawnedIDs.find( typeStringSTD );
 		if ( SpawnedIDs.end() != iter )
 		{ iter->second	= FString(); }

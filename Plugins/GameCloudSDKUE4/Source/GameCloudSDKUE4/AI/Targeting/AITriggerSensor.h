@@ -40,7 +40,9 @@ protected:
 	UFUNCTION()
 		void OnOverlapEnd( UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex );	
 	UFUNCTION()
-		void OnTargetKill( AActor* Target );
+		void OnTargetKill( AActor* Target, AController* Killer );
+	UFUNCTION ()
+		void OnTargetDestroy (AActor* Target);
 	UFUNCTION( BlueprintCallable, meta = ( Category = "GameCloudSDKUE4|AI|Targeting"
 		, Tooltip = "Binds OnOverlapBegin and OnOverlapEnd functions to Trigger" ) )
 		void SetupTrigger( UShapeComponent* TriggerToBind );

@@ -30,7 +30,7 @@ public:
 		, Tooltip = "Sound to spawn on shoot" ) )
 		USoundCue* Sound;
 	UPROPERTY( EditAnyWhere, BlueprintReadWrite, meta = ( Category = "GameCloudSDKUE4|Weapon|WeaponComponents"
-		, Tooltip = "If true, particle system and sound cue Sspawned will be attacked to this component" ) )
+		, Tooltip = "If true, particle system and sound cue spawned will be attached to this component" ) )
 		bool IsSpawnAttached;
 
 	USpawnOnShoot();

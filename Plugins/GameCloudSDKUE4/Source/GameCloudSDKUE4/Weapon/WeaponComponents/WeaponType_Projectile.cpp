@@ -46,10 +46,10 @@ void UWeaponType_Projectile::Shoot()
  			if ( projectileCollider )
  				projectileCollider->IgnoreActorWhenMoving( projectile->Instigator, true );
 			//UCommonFunctions::PrintToLog( "Ignoring " + UKismetSystemLibrary::GetDisplayName( projectile->Instigator ) );
-			//UProjectileMovementComponent* projectileMovementComponent	= Cast<UProjectileMovementComponent>( projectile->GetComponentByClass( UProjectileMovementComponent::StaticClass() ) );
+			UProjectileMovementComponent* projectileMovementComponent	= Cast<UProjectileMovementComponent>( projectile->GetComponentByClass( UProjectileMovementComponent::StaticClass() ) );
 			//{ UCommonFunctions::PrintToLog( "Old velocity : " + projectile->GetVelocity().ToCompactString() ); }
-			//projectileMovementComponent->Velocity	+= pawnVelocity;
-			//projectileMovementComponent->UpdateComponentVelocity();
+			projectileMovementComponent->Velocity	+= pawnVelocity;
+			projectileMovementComponent->UpdateComponentVelocity();
 			//{ UCommonFunctions::PrintToLog( "Old velocity : " + projectile->GetVelocity().ToCompactString() ); }
 		}
 	}

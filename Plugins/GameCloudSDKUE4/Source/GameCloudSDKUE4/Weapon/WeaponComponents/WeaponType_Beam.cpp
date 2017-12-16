@@ -68,6 +68,7 @@ void UWeaponType_Beam::BroadcastHit( FHitResult HitResult )
 
 void UWeaponType_Beam::Shoot()
 {
+	UWeaponType_Range::Shoot();
 	if ( 0 != Beams.Num() )
 	{
 		AActor* owner = GetOwner();

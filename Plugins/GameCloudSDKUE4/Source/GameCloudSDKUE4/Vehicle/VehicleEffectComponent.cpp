@@ -66,93 +66,188 @@ void UVehicleEffectComponent::showMovementEffects( int wheelIndex, FMovementFXSt
 	UParticleSystemComponent* currentFXComponent = nullptr;
 	if ( wheelParticles.size() > wheelIndex )
 		currentFXComponent = wheelParticles[wheelIndex];
+	UVehicleWheel* wheel = MovementComponent->Wheels[wheelIndex];
+	UParticleSystem* movementFX = movementFXStruct.Particle;
 
 	const float currentSpeed = getVehicleSpeed();
 	// effects in WheelFX require wheels of the vehicle to be in contact
 	// with the ground and moving to show the effects
 	//if ( !isOnGround || 0.01f >= currentSpeed )
-	if ( !isOnGround || minimumSpeedToSpawnParticles >= currentSpeed )
+
+	bool enableFXComponent = false;
+	if ( isOnGround )
 	{
-		if ( currentFXComponent )
+		//check brake input and handbrake
+		if ( wheel->bAffectedByHandbrake )
+			enableFXComponent = true;
+		else
+		{
+			if ( movementFXStruct.SpawnParticlesOnMove )
+			{
+				if ( minimumSpeedToSpawnParticles < currentSpeed )
+				{
+					if ( nullptr != movementFX )
+						enableFXComponent = true;
+				}
+			}
+		}
+	}
+
+	if ( !enableFXComponent )
+	{
+		if ( nullptr != currentFXComponent )
 			currentFXComponent->SetActive( false );
 	}
 	else
 	{
-		//  disable fx component and continue
-		UParticleSystem* movementFX = movementFXStruct.Particle;
-		if ( nullptr == movementFX )
+		FString toPrint = "";
+
+		if ( nullptr != currentFXComponent )
 		{
-			if ( currentFXComponent )
+			UParticleSystem* currentFX = currentFXComponent->Template;
+			if ( currentFX != movementFX )
+			{
 				currentFXComponent->SetActive( false );
+				currentFXComponent->bAutoDestroy = true;
+				//currentFXComponent->DetachFromParent();
+				currentFXComponent = nullptr;
+
+				toPrint += "currentFX != movementFX";
+			}
 		}
-		else
+		// create currentFXComponent if it is null
+		if ( nullptr == currentFXComponent )
 		{
-			FString toPrint = "";
+			spawnWheelEffectsComponent( wheelIndex );
+			currentFXComponent = wheelParticles[wheelIndex];
 
-			if ( nullptr != currentFXComponent )
-			{
-				UParticleSystem* currentFX = currentFXComponent->Template;
-				if ( currentFX != movementFX )
-				{
-					currentFXComponent->SetActive( false );
-					currentFXComponent->bAutoDestroy = true;
-					//currentFXComponent->DetachFromParent();
-					currentFXComponent = nullptr;
-
-					toPrint += "currentFX != movementFX";
-				}
-			}
-			// create currentFXComponent if it is null
-			if ( nullptr == currentFXComponent )
-			{
-				spawnWheelEffectsComponent( wheelIndex );
-				currentFXComponent = wheelParticles[wheelIndex];
-
-				if ( toPrint != "" )
-					toPrint += " | ";
-				toPrint += "spawnWheelEffectsComponent";
-			}
-
-			if ( currentFXComponent->Template != movementFX )
-			{
-				currentFXComponent->SetTemplate( movementFX );
-				currentFXComponent->SetRelativeScale3D( movementFXStruct.Scale );
-
-				if ( toPrint != "" )
-					toPrint += " | ";
-				toPrint += "set template";
-			}
-			// set template, activate and scale
-			if ( !currentFXComponent->bHasBeenActivated
-				|| !currentFXComponent->bIsActive 
-				|| currentFXComponent->bWasDeactivated 
-				|| currentFXComponent->bWasCompleted )
-			{
-				currentFXComponent->ActivateSystem();
-				if ( toPrint != "" )
-					toPrint += " | ";
-				toPrint += "activate system!";
-			}
-
-			//float spawnRateOut = movementFXStruct.MaxSpawnRate;			
-			//if ( currentSpeed < movementFXStruct.MaxSpawnRateSpeed )
-			//{
-			//	float fraction = currentSpeed / movementFXStruct.MaxSpawnRateSpeed;
-			//	spawnRateOut *= fraction;
-			//	if ( spawnRateOut >= 0.01f )					
-			//		currentFXComponent->SetFloatParameter( "SpawnRate", movementFXStruct.MaxSpawnRate * fraction );
-			//	else
-			//		currentFXComponent->SetActive( false );
-			//}
-			//else
-			//{
-			//	currentFXComponent->SetFloatParameter( "SpawnRate", movementFXStruct.MaxSpawnRate );
-			//}
-
-			float spawnRate = movementFXStruct.SpawnRateCurve->GetFloatValue( currentSpeed );
-			currentFXComponent->SetFloatParameter( "SpawnRate", spawnRate );
+			if ( toPrint != "" )
+				toPrint += " | ";
+			toPrint += "spawnWheelEffectsComponent";
 		}
+
+		if ( currentFXComponent->Template != movementFX )
+		{
+			currentFXComponent->SetTemplate( movementFX );
+			currentFXComponent->SetRelativeScale3D( movementFXStruct.Scale );
+
+			if ( toPrint != "" )
+				toPrint += " | ";
+			toPrint += "set template";
+		}
+		// set template, activate and scale
+		if ( !currentFXComponent->bHasBeenActivated
+			|| !currentFXComponent->bIsActive
+			|| currentFXComponent->bWasDeactivated
+			|| currentFXComponent->bWasCompleted )
+		{
+			currentFXComponent->ActivateSystem();
+			if ( toPrint != "" )
+				toPrint += " | ";
+			toPrint += "activate system!";
+		}
+
+		//float spawnRateOut = movementFXStruct.MaxSpawnRate;			
+		//if ( currentSpeed < movementFXStruct.MaxSpawnRateSpeed )
+		//{
+		//	float fraction = currentSpeed / movementFXStruct.MaxSpawnRateSpeed;
+		//	spawnRateOut *= fraction;
+		//	if ( spawnRateOut >= 0.01f )					
+		//		currentFXComponent->SetFloatParameter( "SpawnRate", movementFXStruct.MaxSpawnRate * fraction );
+		//	else
+		//		currentFXComponent->SetActive( false );
+		//}
+		//else
+		//{
+		//	currentFXComponent->SetFloatParameter( "SpawnRate", movementFXStruct.MaxSpawnRate );
+		//}
+
+		float spawnRate = movementFXStruct.SpawnRateCurve->GetFloatValue( currentSpeed );
+		currentFXComponent->SetFloatParameter( "SpawnRate", spawnRate );
 	}
+
+	//if ( !isOnGround || minimumSpeedToSpawnParticles >= currentSpeed )
+	//{
+	//	if ( currentFXComponent )
+	//		currentFXComponent->SetActive( false );
+	//}
+	//else
+	//{
+	//	//  disable fx component and continue
+	//	UParticleSystem* movementFX = movementFXStruct.Particle;
+	//	if ( nullptr == movementFX )
+	//	{
+	//		if ( currentFXComponent )
+	//			currentFXComponent->SetActive( false );
+	//	}
+	//	else
+	//	{
+	//		FString toPrint = "";
+
+	//		if ( nullptr != currentFXComponent )
+	//		{
+	//			UParticleSystem* currentFX = currentFXComponent->Template;
+	//			if ( currentFX != movementFX )
+	//			{
+	//				currentFXComponent->SetActive( false );
+	//				currentFXComponent->bAutoDestroy = true;
+	//				//currentFXComponent->DetachFromParent();
+	//				currentFXComponent = nullptr;
+
+	//				toPrint += "currentFX != movementFX";
+	//			}
+	//		}
+	//		// create currentFXComponent if it is null
+	//		if ( nullptr == currentFXComponent )
+	//		{
+	//			spawnWheelEffectsComponent( wheelIndex );
+	//			currentFXComponent = wheelParticles[wheelIndex];
+
+	//			if ( toPrint != "" )
+	//				toPrint += " | ";
+	//			toPrint += "spawnWheelEffectsComponent";
+	//		}
+
+	//		if ( currentFXComponent->Template != movementFX )
+	//		{
+	//			currentFXComponent->SetTemplate( movementFX );
+	//			currentFXComponent->SetRelativeScale3D( movementFXStruct.Scale );
+
+	//			if ( toPrint != "" )
+	//				toPrint += " | ";
+	//			toPrint += "set template";
+	//		}
+	//		// set template, activate and scale
+	//		if ( !currentFXComponent->bHasBeenActivated
+	//			|| !currentFXComponent->bIsActive 
+	//			|| currentFXComponent->bWasDeactivated 
+	//			|| currentFXComponent->bWasCompleted )
+	//		{
+	//			currentFXComponent->ActivateSystem();
+	//			if ( toPrint != "" )
+	//				toPrint += " | ";
+	//			toPrint += "activate system!";
+	//		}
+
+	//		//float spawnRateOut = movementFXStruct.MaxSpawnRate;			
+	//		//if ( currentSpeed < movementFXStruct.MaxSpawnRateSpeed )
+	//		//{
+	//		//	float fraction = currentSpeed / movementFXStruct.MaxSpawnRateSpeed;
+	//		//	spawnRateOut *= fraction;
+	//		//	if ( spawnRateOut >= 0.01f )					
+	//		//		currentFXComponent->SetFloatParameter( "SpawnRate", movementFXStruct.MaxSpawnRate * fraction );
+	//		//	else
+	//		//		currentFXComponent->SetActive( false );
+	//		//}
+	//		//else
+	//		//{
+	//		//	currentFXComponent->SetFloatParameter( "SpawnRate", movementFXStruct.MaxSpawnRate );
+	//		//}
+
+	//		float spawnRate = movementFXStruct.SpawnRateCurve->GetFloatValue( currentSpeed );
+	//		currentFXComponent->SetFloatParameter( "SpawnRate", spawnRate );
+	//	}
+	//}
 }
 
 void UVehicleEffectComponent::spawnSkidEffects( int wheelIndex, FSkidFXStruct skidFXStruct )
@@ -260,15 +355,15 @@ void UVehicleEffectComponent::updateWheelEffectsComponent( float deltaTime )
 			checkf( nullptr != fxStruct.MovementFX.SpawnRateCurve, *FString( "Spawn rate curve is missing for surface " + FString::FromInt( index ) ) );
 
 			surfaceStr += FString::FromInt( index ) + "   ";
+
+			showMovementEffects( i, fxStruct.MovementFX );
+			if ( isOnGround && !hasVehicleStopped && isTireSlipping )
+				spawnSkidEffects( i, fxStruct.SkidFX );
 		}
 		else
 		{
 			surfaceStr += "#   ";
 		}
-
-		showMovementEffects( i, fxStruct.MovementFX );
-		if ( isOnGround && !hasVehicleStopped && isTireSlipping )
-			spawnSkidEffects( i, fxStruct.SkidFX );
 	}
 
 	//UCommonFunctions::PrintFStringOnScreen( 5.0f, FColor::Red, surfaceStr, 101 );

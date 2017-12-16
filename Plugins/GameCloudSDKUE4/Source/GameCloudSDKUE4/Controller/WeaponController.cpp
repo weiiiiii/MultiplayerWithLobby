@@ -109,12 +109,14 @@ void UWeaponController::ShootStart( int Idx )
 
 void UWeaponController::ShootEnd( int Idx )
 {
-	if ( ensureAlwaysMsgf( WeaponSections_.Num() > Idx, *( FString( OwnerName + " attempting to stop shooting weapons at index " + FString::FromInt( Idx ) + ", index is out of bound!" ) ) ) )
+	//if ( ensureAlwaysMsgf( WeaponSections_.Num() > Idx, *( FString( OwnerName + " attempting to stop shooting weapons at index " + FString::FromInt( Idx ) + ", index is out of bound!" ) ) ) )
+	if ( WeaponSections_.Num() > Idx )
 	{
 		FWeaponSection section = WeaponSections_[Idx];
 		for ( auto weaponLogic : section.WeaponLogics_ )
 		{
-			if ( ensureAlwaysMsgf( nullptr != weaponLogic, *( FString( OwnerName + " attempting to stop shooting an invalid weapon logic" ) ) ) )
+			//if ( ensureAlwaysMsgf( nullptr != weaponLogic, *( FString( OwnerName + " attempting to stop shooting an invalid weapon logic" ) ) ) )
+			if ( nullptr != weaponLogic )
 			{
 				FString errorStr = FString();
 				weaponLogic->ShootEnd( errorStr );

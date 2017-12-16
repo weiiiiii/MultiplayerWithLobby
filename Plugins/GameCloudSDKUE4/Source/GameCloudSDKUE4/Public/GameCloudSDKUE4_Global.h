@@ -10,3 +10,4 @@
  * 
  */
 extern UWebSocketBase*										_WebSocket_Client;
+extern UWebSocketBase*										_Vote_WebSocket;

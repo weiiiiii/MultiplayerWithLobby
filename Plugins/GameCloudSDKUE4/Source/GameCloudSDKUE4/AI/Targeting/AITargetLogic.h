@@ -75,6 +75,10 @@ public:
 	UPROPERTY( EditAnywhere, BlueprintReadWrite, meta = ( Category = "GameCloudSDKUE4|AI|Targeting"
 		, ToolTip = "Angle from forward vector for target to be considered in range" ) )
 		float																ShootAngleYaw;
+	UPROPERTY( EditAnywhere, BlueprintReadWrite, meta = ( Category = "GameCloudSDKUE4|AI|Targeting"
+		, ToolTip = "Position to offset when rotating towards target" ) )
+		FVector																ShootOffset;
+
 
 	UPROPERTY( BlueprintReadWrite, meta = ( Category = "GameCloudSDKUE4|AI|Targeting"
 		, ToolTip = "AISensorBase owned by pawn that owns parent" ) )
@@ -126,5 +130,7 @@ protected:
 	void SetStartingRotator( USceneComponent* Component );
 
 	UFUNCTION()
-	void OnTargetDeath( AActor* DestroyedActor );
+		void OnTargetDeath( AActor* KilledActor, AController* KilledBy );
+	UFUNCTION ()
+		void OnTargetDestroyed (AActor* DestroyedActor);
 };

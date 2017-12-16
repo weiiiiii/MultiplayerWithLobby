@@ -28,6 +28,7 @@ namespace
 {
 	void																	SendWebsocketMessage( const simple::mem_ostream <std::true_type> & out )
 	{
+#if WITH_EDITOR == 0
 		if ( nullptr != _WebSocket_Client )
 		{
 			const char * buffer	= reinterpret_cast <const char*> ( out.get_internal_vec().data() );
@@ -92,23 +93,11 @@ namespace
 			UCommonFunctions::PrintStringOnScreen( 5.0f, FColor::Red, toPrint );
 			UCommonFunctions::PrintToLog( FString( toPrint.c_str() ) );
 		}
+#else
+		UCommonFunctions::PrintStringOnScreen( 5.0f, FColor::Red, "Unable to use websocket in editor!" );
+		UCommonFunctions::PrintToLog( "Unable to send websocket in editor!" );
+#endif
 	}
-}
-
-void UClientConnectionBlueprintLibrary::GetCoupon()
-{
-	simple::mem_ostream <std::true_type> out;
-	out << GameCloud::GameCloudSDKNetworkMessageType::GetCoupon;
-
-	SendWebsocketMessage( out );
-}
-
-void UClientConnectionBlueprintLibrary::ShowGamepad( bool IsShowing )
-{
-	simple::mem_ostream <std::true_type> out;
-	out << GameCloud::GameCloudSDKNetworkMessageType::ShowGamePad << IsShowing;
-
-	SendWebsocketMessage ( out );
 }
 
 void UClientConnectionBlueprintLibrary::EnableKeyboardMouse( bool Keyboard, bool Mouse )
@@ -119,9 +108,25 @@ void UClientConnectionBlueprintLibrary::EnableKeyboardMouse( bool Keyboard, bool
 	SendWebsocketMessage( out );
 }
 
+void UClientConnectionBlueprintLibrary::GetCoupon()
+{
+	simple::mem_ostream <std::true_type> out;
+	out << GameCloud::GameCloudSDKNetworkMessageType::GetCoupon;
+
+	SendWebsocketMessage( out );
+}
+
 WebSocketDataType UClientConnectionBlueprintLibrary::GetWSDataType()
 {
 	return WSDataType;
+}
+
+void UClientConnectionBlueprintLibrary::ShowGamepad( bool IsShowing )
+{
+	simple::mem_ostream <std::true_type> out;
+	out << GameCloud::GameCloudSDKNetworkMessageType::ShowGamePad << IsShowing;
+
+	SendWebsocketMessage ( out );
 }
 
 void UClientConnectionBlueprintLibrary::UpdateWSDataType( bool IsIncrement )

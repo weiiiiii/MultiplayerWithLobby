@@ -39,16 +39,17 @@ protected:
 
 public:
 	UFUNCTION( BlueprintCallable, Category = "Client Connection" )
+		static void EnableKeyboardMouse( bool Keyboard, bool Mouse );
+
+	UFUNCTION( BlueprintCallable, Category = "Client Connection" )
 		static void GetCoupon();
+
+	UFUNCTION( BlueprintCallable, Category = "Client Connection" )
+		static WebSocketDataType GetWSDataType();
 
 	UFUNCTION( BlueprintCallable, Category = "Client Connection" )
 		static void ShowGamepad( bool IsShowing );
 
-	UFUNCTION( BlueprintCallable, Category = "Client Connection" )
-		static void EnableKeyboardMouse( bool Keyboard, bool Mouse );
-
-	UFUNCTION( BlueprintCallable, Category = "Client Connection" )
-		static WebSocketDataType GetWSDataType();
 	UFUNCTION( BlueprintCallable, Category = "Client Connection" )
 		static void UpdateWSDataType( bool IsIncrement );
 

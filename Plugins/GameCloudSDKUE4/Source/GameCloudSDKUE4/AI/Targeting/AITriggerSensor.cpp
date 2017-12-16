@@ -43,8 +43,8 @@ void UAITriggerSensor::OnOverlapBegin( UPrimitiveComponent* OverlappedComponent,
 		UEntityComponent* entityComponent = Cast<UEntityComponent>( OtherActor->GetComponentByClass( UEntityComponent::StaticClass() ) );
 		if ( !entityComponent->OnEntityKill.IsAlreadyBound( this, &UAITriggerSensor::OnTargetKill ) )
 		{ entityComponent->OnEntityKill.AddDynamic( this, &UAITriggerSensor::OnTargetKill ); }
-		if ( !entityComponent->OnEntityDestroy.IsAlreadyBound( this, &UAITriggerSensor::OnTargetKill ) )
-		{ entityComponent->OnEntityDestroy.AddDynamic( this, &UAITriggerSensor::OnTargetKill ); }
+		if ( !entityComponent->OnEntityDestroy.IsAlreadyBound( this, &UAITriggerSensor::OnTargetDestroy ) )
+		{ entityComponent->OnEntityDestroy.AddDynamic( this, &UAITriggerSensor::OnTargetDestroy); }
 	}
 }
 
@@ -55,7 +55,7 @@ void UAITriggerSensor::OnOverlapEnd( UPrimitiveComponent* OverlappedComponent, A
 		Targets.Remove( OtherActor );
 		UEntityComponent* entityComponent = Cast<UEntityComponent>( OtherActor->GetComponentByClass( UEntityComponent::StaticClass() ) );
 		entityComponent->OnEntityKill.RemoveDynamic( this, &UAITriggerSensor::OnTargetKill );
-		entityComponent->OnEntityDestroy.RemoveDynamic( this, &UAITriggerSensor::OnTargetKill );
+		entityComponent->OnEntityDestroy.RemoveDynamic( this, &UAITriggerSensor::OnTargetDestroy);
 	}
 }
 
@@ -68,8 +68,16 @@ void UAITriggerSensor::SetupTrigger( UShapeComponent* TriggerToBind )
 	{ Trigger->OnComponentEndOverlap.AddDynamic( this, &UAITriggerSensor::OnOverlapEnd ); }
 }
 
-void UAITriggerSensor::OnTargetKill( AActor* Target )
+void UAITriggerSensor::OnTargetKill( AActor* Target, AController* Killer )
 {
 	if ( Targets.Contains( Target ) )
 	{ Targets.Remove( Target ); }
+}
+
+void UAITriggerSensor::OnTargetDestroy (AActor* Target)
+{
+	if (Targets.Contains (Target))
+	{
+		Targets.Remove (Target);
+	}
 }

@@ -34,7 +34,7 @@ void UEntityComponent::BeginPlay()
 	check( owner );
 	ensureMsgf( nullptr == owner->GetParentActor(), *FString( "EntityComponent MUST be added to the base actor!" ) );
 
-	owner->OnTakePointDamage.AddDynamic( this, &UEntityComponent::OnTakePointDamage );
+	//owner->OnTakePointDamage.AddDynamic( this, &UEntityComponent::OnTakePointDamage );
 	owner->OnTakeAnyDamage.AddDynamic( this, &UEntityComponent::OnTakeAnyDamage );
 	owner->OnDestroyed.AddDynamic( this, &UEntityComponent::OnDestroyed );
 }
@@ -42,6 +42,8 @@ void UEntityComponent::BeginPlay()
 void UEntityComponent::EntityTakeDamage( float Damage, const class UDamageType* DamageType )
 {
 	EntityData.Health -= Damage;
+	//UCommonFunctions::PrintFStringOnScreen( 5.0f, FColor::Red, "UEntityComponent::EntityTakeDamage - Health left : " + FString::SanitizeFloat( EntityData.Health ) );
+	OnEntityDamaged.Broadcast( Damage );
 
 	AActor* owner = GetOwner();
 	check( owner );
@@ -53,15 +55,16 @@ void UEntityComponent::OnTakeAnyDamage( AActor* DamagedActor, float Damage, cons
 	AActor* owner = GetOwner();
 	check( owner );
 	FString ownerName = UKismetSystemLibrary::GetDisplayName( owner );
-	//UCommonFunctions::PrintFStringOnScreen( 5.0f, FColor::Green, ownerName + " is taking " + FString::SanitizeFloat( Damage ) + " damage!" );
-	
+	//UCommonFunctions::PrintFStringOnScreen( 5.0f, FColor::Green, InstigatedBy->name );
+	//UCommonFunctions::PrintFStringOnScreen( 5.0f, FColor::Cyan, "UEntityComponent::OnTakeAnyDamage - " + ownerName );
+
 	EntityTakeDamage( Damage, DamageType );
 	if ( 0.0f >= EntityData.Health )
 	{
 		EntityData.Health = 0.0f;
 		EntityData.IsDead = true;
 
-		OnEntityKill.Broadcast( owner );
+		OnEntityKill.Broadcast( owner, InstigatedBy );
 		if ( AutoDestroyOnEntityKill )
 		{ owner->Destroy(); }
 	}
@@ -73,6 +76,7 @@ void UEntityComponent::OnTakePointDamage( AActor* DamagedActor, float Damage, cl
 	check( owner );
 	FString ownerName = UKismetSystemLibrary::GetDisplayName( owner );
 	//UCommonFunctions::PrintFStringOnScreen( 5.0f, FColor::Green, ownerName + " is taking " + FString::SanitizeFloat( Damage ) + " damage!" );
+	//UCommonFunctions::PrintFStringOnScreen( 5.0f, FColor::Magenta, "UEntityComponent::OnTakePointDamage - " + ownerName );
 
 	EntityTakeDamage( Damage, DamageType );
 	if ( 0.0f >= EntityData.Health )
@@ -80,7 +84,7 @@ void UEntityComponent::OnTakePointDamage( AActor* DamagedActor, float Damage, cl
 		EntityData.Health = 0.0f;
 		EntityData.IsDead = true;
 
-		OnEntityKill.Broadcast( owner );
+		OnEntityKill.Broadcast( owner, InstigatedBy );
 		if ( AutoDestroyOnEntityKill )
 		{ owner->Destroy(); }
 	}

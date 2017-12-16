@@ -50,6 +50,7 @@ UCollisionEvent::UCollisionEvent()
 
 	, shapeComponent( nullptr )
 	, audioComponent( nullptr )
+	, ShouldDestroy( false )
 {
 	PrimaryComponentTick.bCanEverTick = true;
 }
@@ -79,7 +80,7 @@ void UCollisionEvent::OnHit( UPrimitiveComponent* HitComponent, AActor* OtherAct
 	spawnDecal( DecalOnHit, Hit );
 
 	if ( DestroyActorOnHit )
-		destroyActor();
+		ShouldDestroy	= true;
 }
 
 void UCollisionEvent::OnBeginOverlap( class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult )
@@ -90,7 +91,7 @@ void UCollisionEvent::OnBeginOverlap( class UPrimitiveComponent* OverlappedComp,
 	if ( nullptr == owner )
 		return;
 
-	if ( DamageOnHit )
+	if ( DamageOnBeginOverlap )
 	{
 		APawn* instigator		= nullptr;
 		AController* controller	= nullptr;
@@ -108,7 +109,7 @@ void UCollisionEvent::OnBeginOverlap( class UPrimitiveComponent* OverlappedComp,
 	spawnDecal( DecalOnOverlap, SweepResult );
 
 	if ( DestroyActorOnBeginOverlap )
-		destroyActor();
+		ShouldDestroy	= true;
 }
 
 void UCollisionEvent::OnOverlapUpdate()
@@ -120,7 +121,7 @@ void UCollisionEvent::OnOverlapUpdate()
 	if ( nullptr == owner )
 		return;
 
-	if ( DamageOnHit )
+	if ( DamageOnOverlapUpdate )
 	{
 		// some how apply damage if required
 	}
@@ -137,7 +138,7 @@ void UCollisionEvent::OnOverlapUpdate()
 	}
 
 	if ( DestroyActorOnOverlapUpdate )
-		destroyActor();
+		ShouldDestroy	= true;
 }
 
 void UCollisionEvent::OnEndOverlap( class UPrimitiveComponent* OverlappedComponent, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex )
@@ -146,13 +147,13 @@ void UCollisionEvent::OnEndOverlap( class UPrimitiveComponent* OverlappedCompone
 	if ( nullptr == owner )
 		return;
 
-	if ( DamageOnHit )
+	if ( DamageOnEndOverlap )
 	{
 		// some how apply damage if required
 	}
 
 	if ( DestroyActorOnEndOverlap )
-		destroyActor();
+		ShouldDestroy	= true;
 	//DebugOnEndOverlap.PrintOnEvent( "On End Overlap", FHitResult( 1 ) );
 }
 
@@ -161,6 +162,9 @@ void UCollisionEvent::TickComponent( float DeltaTime, ELevelTick TickType, FActo
 	Super::TickComponent( DeltaTime, TickType, ThisTickFunction );
 
 	OnOverlapUpdate();
+
+	if ( ShouldDestroy )
+	{ destroyActor(); }
 }
 
 
@@ -220,9 +224,10 @@ void UCollisionEvent::ApplyAllDamage( FHitResult Hit, AController* EventInstigat
 
 	if ( ApplyRadialDamage.IsEnabled )
 	{
+		const ECollisionChannel & Channel = UCollisionProfile::Get()->ConvertToCollisionChannel( false, ApplyRadialDamage.DamagePreventionChannel );
 		bool result = UGameplayStatics::ApplyRadialDamage( Cast<UObject>( DamageCauser->GetWorld() ), ApplyRadialDamage.BaseDamage, GetOwner()->GetActorLocation(),
 			ApplyRadialDamage.DamageRadius, ApplyRadialDamage.DamageType, TArray<AActor*>(), DamageCauser, EventInstigatorController,
-			ApplyRadialDamage.DoFullDamage );
+			ApplyRadialDamage.DoFullDamage, Channel );
 
 		// 		UCommonFunctions::PrintFStringOnScreen( 5.0f, FColor::Red, FString::SanitizeFloat( ApplyRadialDamage.BaseDamage ) );
 		// 		if ( result )
@@ -234,10 +239,13 @@ void UCollisionEvent::ApplyAllDamage( FHitResult Hit, AController* EventInstigat
 	}
 
 	if ( ApplyRadialDamageWithFalloff.IsEnabled )
+	{
+		const ECollisionChannel & Channel = UCollisionProfile::Get()->ConvertToCollisionChannel( false, ApplyRadialDamageWithFalloff.DamagePreventionChannel );
 		UGameplayStatics::ApplyRadialDamageWithFalloff( Cast<UObject>( DamageCauser->GetWorld() ), ApplyRadialDamageWithFalloff.BaseDamage,
-		ApplyRadialDamageWithFalloff.MinimumDamage, Hit.ImpactPoint, ApplyRadialDamageWithFalloff.DamageInnerRadius,
-		ApplyRadialDamageWithFalloff.DamageOuterRadius, ApplyRadialDamageWithFalloff.DamageFalloff, ApplyRadialDamageWithFalloff.DamageType, TArray<AActor*>(),
-		DamageCauser, EventInstigatorController );
+			ApplyRadialDamageWithFalloff.MinimumDamage, Hit.ImpactPoint, ApplyRadialDamageWithFalloff.DamageInnerRadius,
+			ApplyRadialDamageWithFalloff.DamageOuterRadius, ApplyRadialDamageWithFalloff.DamageFalloff, ApplyRadialDamageWithFalloff.DamageType, TArray<AActor*>(),
+			DamageCauser, EventInstigatorController, Channel );
+	}
 }
 
 void UCollisionEvent::spawnDecal( UDataTable* decalTable, FHitResult hitResult )

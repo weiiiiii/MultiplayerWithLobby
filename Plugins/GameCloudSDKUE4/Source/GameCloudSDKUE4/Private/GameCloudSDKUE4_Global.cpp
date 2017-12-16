@@ -3,3 +3,4 @@
 #include "GameCloudSDKUE4_Global.h"
 
 UWebSocketBase*												_WebSocket_Client = 0;
+UWebSocketBase*												_Vote_WebSocket = 0;

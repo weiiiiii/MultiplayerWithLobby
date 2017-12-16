@@ -82,16 +82,28 @@ public:
 	*/
 	UFUNCTION( BlueprintCallable, meta = ( Category = "QbjectFactory_SQL" ) )
 		TArray<FSQLiteRow> GetAllData();
+	
+	UFUNCTION( BlueprintCallable, meta = ( Category = "QbjectFactory_SQL" ) )
+		bool IsFileExist( FString path );
 
 protected:
 	/**	Returns the number of Delimiter found in string ToCount. */
 	int CountNumberOfDelimiterInString( FString ToCount, FString Delimiter );
 	/**	Function ensures that all extra ' is escaped. */
 	FString EscapeInvertedCommaForTextValue( FString Query );
+	//	the following do not work in a packaged game
+	//	1) StaticLoadObject()
+	//	2) const IAssetRegistry& Registry = FModuleManager::LoadModuleChecked<FAssetRegistryModule>( "AssetRegistry" ).Get();
+	//	Registry.GetAssetsByClass( UBlueprint::StaticClass()->GetFName(), TemplateList );
 	/*
-	*	Uses param BlueprintClassPath to load and return the Blueprint in contents
+	*	A modification of EngineUtils::FindOrLoadAssetsByPath().
+
+	*	StaticLoadObject() and 
+
+	const IAssetRegistry& Registry = FModuleManager::LoadModuleChecked<FAssetRegistryModule>( "AssetRegistry" ).Get();
+	Registry.GetAssetsByClass( UBlueprint::StaticClass()->GetFName(), TemplateList );
 	*/
-	TSubclassOf<class UObject> GetBlueprintClass( const FString BlueprintClassPath );
+	UClass* GetBlueprintClass( FString BlueprintPath );
 	/*
 	*	Using the query to create table, SQLiteFieldsArray and SQLiteFieldsMap
 	*	are populated
@@ -110,4 +122,6 @@ protected:
 	*	KeepDelimiter will leave delimiter with the separated front string if true.
 	*/
 	TArray<FString> SplitStringWithDelimiter( FString ToSplit, FString Delimiter, const bool KeepDelimiter );
+
+	TSubclassOf<UObject> TestFunc( FName Name, const TCHAR* Path );
 };

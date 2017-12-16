@@ -16,8 +16,9 @@
 #include "EntityComponent.generated.h"
 
 // delegate functions
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam( FOnEntityKill, AActor*, KilledActor );
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams( FOnEntityKill, AActor*, KilledActor, AController*, KilledBy );
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam( FOnEntityDestroy, AActor*, KilledActor );
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam( FOnEntityDamaged, float, DamageAmount );
 
 UCLASS( ClassGroup = ( GameCloudSDKUE4 ), meta = ( BlueprintSpawnableComponent ) )
 class GAMECLOUDSDKUE4_API UEntityComponent : public UActorComponent
@@ -29,6 +30,8 @@ public:
 		FOnEntityKill OnEntityKill;
 	UPROPERTY( BlueprintAssignable, meta = ( Category = "GameCloudSDKUE4|Entity", Tooltip = "A failsafe in case Destroy() or DestroyActor is called before OnEntityKill gets to broadcast. Broadcasts on actor's OnDestroyed event" ) )
 		FOnEntityDestroy OnEntityDestroy;
+	UPROPERTY( BlueprintAssignable, meta = ( Category = "GameCloudSDKUE4|Entity", Tooltip = "When entity receives damage" ) )
+		FOnEntityDamaged OnEntityDamaged;
 	UPROPERTY( EditAnywhere, BlueprintReadWrite, meta = ( Category = "GameCloudSDKUE4|Entity" ) )
 		FEntityData EntityData;
 	UPROPERTY( EditAnywhere, BlueprintReadWrite, meta = ( Category = "GameCloudSDKUE4|Entity" , Tooltip = "Will call Destroy() on event OnEntityKill" ) )

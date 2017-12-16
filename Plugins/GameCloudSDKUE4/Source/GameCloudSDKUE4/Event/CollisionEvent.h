@@ -56,6 +56,8 @@ struct FApplyRadialDamageStruct
 		bool DoFullDamage;
 	UPROPERTY( EditAnywhere, BlueprintReadWrite )
 		TSubclassOf<UDamageType> DamageType;
+	UPROPERTY( EditAnywhere, BlueprintReadWrite )
+		TEnumAsByte<ECollisionChannel> DamagePreventionChannel;
 
 	FApplyRadialDamageStruct()
 		: IsEnabled( false )
@@ -63,6 +65,7 @@ struct FApplyRadialDamageStruct
 		, DamageRadius( 0.0f )
 		, DoFullDamage( false )
 		, DamageType( nullptr )
+		, DamagePreventionChannel()
 	{
 
 	}
@@ -87,6 +90,8 @@ struct FApplyRadialDamageWithFalloffStruct
 		float DamageFalloff;
 	UPROPERTY( EditAnywhere, BlueprintReadWrite )
 		TSubclassOf<UDamageType> DamageType;
+	UPROPERTY( EditAnywhere, BlueprintReadWrite )
+		TEnumAsByte<ECollisionChannel> DamagePreventionChannel;
 
 	FApplyRadialDamageWithFalloffStruct()
 		: IsEnabled( false )
@@ -96,6 +101,7 @@ struct FApplyRadialDamageWithFalloffStruct
 		, DamageOuterRadius( 0.0f )
 		, DamageFalloff( 0.0f )
 		, DamageType( nullptr )
+		, DamagePreventionChannel()
 	{
 
 	}
@@ -248,6 +254,7 @@ public:
 protected:
 	UShapeComponent* shapeComponent;
 	UAudioComponent* audioComponent;
+	bool ShouldDestroy;
 		
 public:
 	UCollisionEvent();
