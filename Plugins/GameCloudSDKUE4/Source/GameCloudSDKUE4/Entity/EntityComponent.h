@@ -5,7 +5,7 @@
 // include STL
 // includes Engine files
 #include "CoreMinimal.h"
-#include "Components/ActorComponent.h"
+#include "Components/SceneComponent.h"
 #include "Delegates/DelegateCombinations.h"
 // include plugin files
 // includes third party files
@@ -21,7 +21,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam( FOnEntityDestroy, AActor*, KilledAc
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam( FOnEntityDamaged, float, DamageAmount );
 
 UCLASS( ClassGroup = ( GameCloudSDKUE4 ), meta = ( BlueprintSpawnableComponent ) )
-class GAMECLOUDSDKUE4_API UEntityComponent : public UActorComponent
+class GAMECLOUDSDKUE4_API UEntityComponent : public USceneComponent
 {
 	GENERATED_BODY()
 

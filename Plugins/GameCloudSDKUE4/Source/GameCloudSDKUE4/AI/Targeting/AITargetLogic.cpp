@@ -193,16 +193,17 @@ void UAITargetLogic::Rotate( float DeltaTime )
 			}
 			else
 			{
-				FVector targetLocation		= Target->GetActorLocation();
-				FVector actorLocation		= WeaponComponent->GetComponentLocation();
-				FVector directionToFace		= targetLocation - actorLocation + WeaponComponent->GetForwardVector() * ShootOffset;
-				FRotator targetRotation		= UKismetMathLibrary::MakeRotationFromAxes( directionToFace, FVector::ZeroVector, FVector::ZeroVector );
+				UEntityComponent* entityComponent	= Cast<UEntityComponent>( Target->GetComponentByClass( UEntityComponent::StaticClass() ) );
+				FVector targetLocation				= entityComponent->GetComponentLocation();
+				FVector actorLocation				= WeaponComponent->GetComponentLocation();
+				FVector directionToFace				= targetLocation - actorLocation;
+				FRotator targetRotation				= UKismetMathLibrary::MakeRotationFromAxes( directionToFace, FVector::ZeroVector, FVector::ZeroVector );
 				//UCommonFunctions::PrintFStringOnScreen( 5.0f, FColor::Red, "Target wor Rotation : " + targetRotation.ToCompactString(), 1000 );
-				FRotator compWorldRotation	= WeaponComponent->GetComponentRotation();
+				FRotator compWorldRotation			= WeaponComponent->GetComponentRotation();
 
 				//UCommonFunctions::PrintFStringOnScreen( 5.0f, FColor::Red, "Comp World Rotation : " + compWorldRotation.ToCompactString(), 1001 );
 				//UCommonFunctions::PrintFStringOnScreen( 5.0f, FColor::Red, "Comp Relat Rotation : " + currentRotation.ToCompactString(), 1002 );
-				FRotator diffInRotation		= targetRotation - WeaponComponent->GetComponentRotation();
+				FRotator diffInRotation				= targetRotation - WeaponComponent->GetComponentRotation();
 				//targetRotation				-= componentToRotate->GetComponentRotation();
 				//RotateComponent( targetRotation, currentRotation, componentToRotate, DeltaTime, rotationType );
 				RotateComponent2( diffInRotation, componentToRotate, DeltaTime, rotationType );

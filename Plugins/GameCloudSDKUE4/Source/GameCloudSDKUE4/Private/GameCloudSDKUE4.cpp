@@ -27,7 +27,7 @@ void FGameCloudSDKUE4Module::StartupModule()
 
 	check( 0 == _WebSocket_Client );
 	_WebSocket_Client	= UWebSocketBlueprintLibrary::Connect( "ws://localhost:9002" );
-	_Vote_WebSocket		= UWebSocketBlueprintLibrary::Connect( "ws://localhost:9001/playerroom1" );
+	//_Vote_WebSocket		= UWebSocketBlueprintLibrary::Connect( "ws://localhost:9001/playerroom1" );
 	//_WebSocket_Client	= UWebSocketBlueprintLibrary::Connect( "ws://192.168.1.99:9002" );
 	
 	//std::list<std::string> relativeLibraryPaths;

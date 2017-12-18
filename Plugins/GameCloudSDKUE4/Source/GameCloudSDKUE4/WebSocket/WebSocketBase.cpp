@@ -262,8 +262,8 @@ void UWebSocketBase::ProcessWriteable_StdString()
 void UWebSocketBase::ProcessRead( const char* in, int len )
 {
 	FString strData = UTF8_TO_TCHAR( in );
-	UCommonFunctions::PrintFStringOnScreen( 30.0f, FColor::Orange, "WebSocketBase::ProcessRead : " + strData );
-	UCommonFunctions::PrintFStringOnScreen( 30.0f, FColor::Orange, FString::FromInt( OnReceiveData.GetAllObjects().Num() ) );
+	//UCommonFunctions::PrintFStringOnScreen( 30.0f, FColor::Orange, "WebSocketBase::ProcessRead : " + strData );
+	//UCommonFunctions::PrintFStringOnScreen( 30.0f, FColor::Orange, FString::FromInt( OnReceiveData.GetAllObjects().Num() ) );
 	
 
 	OnReceiveData.Broadcast( strData );

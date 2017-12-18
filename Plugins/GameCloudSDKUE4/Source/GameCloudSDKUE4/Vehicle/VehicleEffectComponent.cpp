@@ -79,27 +79,50 @@ void UVehicleEffectComponent::showMovementEffects( int wheelIndex, FMovementFXSt
 	{
 		//check brake input and handbrake
 		if ( wheel->bAffectedByHandbrake )
+		{
 			enableFXComponent = true;
+			UCommonFunctions::PrintStringOnScreen( 5.0f, FColor::Green, "Handbrake on" );
+		}
 		else
 		{
+			UCommonFunctions::PrintStringOnScreen( 5.0f, FColor::Red, "Handbrake off" );
 			if ( movementFXStruct.SpawnParticlesOnMove )
 			{
+				UCommonFunctions::PrintStringOnScreen( 5.0f, FColor::Green, "Spawn particles on move : True" );
 				if ( minimumSpeedToSpawnParticles < currentSpeed )
 				{
+					UCommonFunctions::PrintStringOnScreen( 5.0f, FColor::Green, "minimum speed to spawn reached" );
 					if ( nullptr != movementFX )
+					{
 						enableFXComponent = true;
+						UCommonFunctions::PrintStringOnScreen( 5.0f, FColor::Green, "Movement FX available" );
+					}
+					else
+					{
+						UCommonFunctions::PrintStringOnScreen( 5.0f, FColor::Red, "Movement FX NOT available" );
+					}
 				}
+				else
+				{
+					UCommonFunctions::PrintStringOnScreen( 5.0f, FColor::Red, "below minimum speed to spawn" );
+				}
+			}
+			else
+			{
+				UCommonFunctions::PrintStringOnScreen( 5.0f, FColor::Red, "Spawn particles on move : False" );
 			}
 		}
 	}
 
 	if ( !enableFXComponent )
 	{
+		UCommonFunctions::PrintStringOnScreen( 5.0f, FColor::Red, "DISABLE FX COMPONENT" );
 		if ( nullptr != currentFXComponent )
 			currentFXComponent->SetActive( false );
 	}
 	else
 	{
+		UCommonFunctions::PrintStringOnScreen( 5.0f, FColor::Red, "ENABLE FX COMPONENT" );
 		FString toPrint = "";
 
 		if ( nullptr != currentFXComponent )
@@ -366,7 +389,7 @@ void UVehicleEffectComponent::updateWheelEffectsComponent( float deltaTime )
 		}
 	}
 
-	//UCommonFunctions::PrintFStringOnScreen( 5.0f, FColor::Red, surfaceStr, 101 );
+	UCommonFunctions::PrintFStringOnScreen( 5.0f, FColor::Cyan, surfaceStr, 101 );
 }
 
 void UVehicleEffectComponent::printVehicleStats()

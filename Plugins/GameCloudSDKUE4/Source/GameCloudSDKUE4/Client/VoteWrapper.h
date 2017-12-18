@@ -41,15 +41,16 @@ class GAMECLOUDSDKUE4_API UVoteWrapper :public UObject
 	UPROPERTY( BlueprintAssignable, Category = Voting )
 		FVoteResultReceive OnReceiveResult;
 
+	UWebSocketBase* Websocket;
 public:
 	UVoteWrapper( const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get() );
 
 	UFUNCTION( BlueprintCallable, Category = "Client Connection" )
-		void CreateVoteSession( FVoteSessionData VoteSessionData );
-	UFUNCTION( BlueprintCallable, Category = "Client Connection" )
-		void StartVoteSession();
+		void StartVoteSession( FVoteSessionData VoteSessionData );
 	UFUNCTION( BlueprintCallable, Category = "Client Connection" )
 		void StopVoteSession();
+	UFUNCTION( BlueprintCallable, Category = "Client Connection" )
+		void ResetWebsocket();
 	UFUNCTION()
 		void WebSocketClosed();
 	UFUNCTION()

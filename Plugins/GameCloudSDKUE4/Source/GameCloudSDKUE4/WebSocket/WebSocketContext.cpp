@@ -78,7 +78,7 @@ int UWebSocketContext::callback_echo( struct lws *wsi, enum lws_callback_reasons
 	switch ( reason )
 	{
 		case LWS_CALLBACK_CLOSED:
-			UCommonFunctions::PrintFStringOnScreen( 10.0f, FColor::Orange, "UWebSocketContext::callback_echo : LWS_CALLBACK_CLOSED" );
+			//UCommonFunctions::PrintFStringOnScreen( 10.0f, FColor::Orange, "UWebSocketContext::callback_echo : LWS_CALLBACK_CLOSED" );
 			if ( !pWebSocketBase ) return -1;
 			pWebSocketBase->Cleanlws();
 			pWebSocketBase->OnClosed.Broadcast();
@@ -87,7 +87,7 @@ int UWebSocketContext::callback_echo( struct lws *wsi, enum lws_callback_reasons
 		case LWS_CALLBACK_CLIENT_CONNECTION_ERROR:
 		{
 			if ( !pWebSocketBase ) return -1;
-			UCommonFunctions::PrintFStringOnScreen( 10.0f, FColor::Orange, "UWebSocketContext::callback_echo : LWS_CALLBACK_CLIENT_CONNECTION_ERROR" );
+			//UCommonFunctions::PrintFStringOnScreen( 10.0f, FColor::Orange, "UWebSocketContext::callback_echo : LWS_CALLBACK_CLIENT_CONNECTION_ERROR" );
 			FString strError = UTF8_TO_TCHAR( in );
 			UE_LOG( WebSocket, Error, TEXT( "libwebsocket connect error:%s" ), *strError );
 			pWebSocketBase->Cleanlws();
@@ -96,14 +96,14 @@ int UWebSocketContext::callback_echo( struct lws *wsi, enum lws_callback_reasons
 		break;
 
 		case LWS_CALLBACK_CLIENT_ESTABLISHED:
-			UCommonFunctions::PrintFStringOnScreen( 10.0f, FColor::Orange, "UWebSocketContext::callback_echo : LWS_CALLBACK_CLIENT_ESTABLISHED" );
+			//UCommonFunctions::PrintFStringOnScreen( 10.0f, FColor::Orange, "UWebSocketContext::callback_echo : LWS_CALLBACK_CLIENT_ESTABLISHED" );
 			if ( !pWebSocketBase ) return -1;
 			pWebSocketBase->OnConnectComplete.Broadcast();
 			break;
 
 		case LWS_CALLBACK_CLIENT_APPEND_HANDSHAKE_HEADER:
 		{
-			UCommonFunctions::PrintFStringOnScreen( 10.0f, FColor::Orange, "UWebSocketContext::callback_echo : LWS_CALLBACK_CLIENT_APPEND_HANDSHAKE_HEADER" );
+			//UCommonFunctions::PrintFStringOnScreen( 10.0f, FColor::Orange, "UWebSocketContext::callback_echo : LWS_CALLBACK_CLIENT_APPEND_HANDSHAKE_HEADER" );
 			if ( !pWebSocketBase ) return -1;
 
 			unsigned char **p = (unsigned char **)in, *end = ( *p ) + len;
@@ -116,14 +116,14 @@ int UWebSocketContext::callback_echo( struct lws *wsi, enum lws_callback_reasons
 
 		case LWS_CALLBACK_CLIENT_RECEIVE:
 		{
-			UCommonFunctions::PrintFStringOnScreen( 10.0f, FColor::Orange, "UWebSocketContext::callback_echo : LWS_CALLBACK_CLIENT_RECEIVE" );
+			//UCommonFunctions::PrintFStringOnScreen( 10.0f, FColor::Orange, "UWebSocketContext::callback_echo : LWS_CALLBACK_CLIENT_RECEIVE" );
 			if ( !pWebSocketBase )
 			{
-				UCommonFunctions::PrintFStringOnScreen( 10.0f, FColor::Red, "Websocket is INVALID!" );
+				//UCommonFunctions::PrintFStringOnScreen( 10.0f, FColor::Red, "Websocket is INVALID!" );
 				return -1;
 			}
 			FString inStr = FString( (const char*)in );
-			UCommonFunctions::PrintFStringOnScreen( 30.0f, FColor::Orange, "WebSocketBase::ProcessRead : " + inStr + " Len : " + FString::FromInt( len ) );
+			//UCommonFunctions::PrintFStringOnScreen( 30.0f, FColor::Orange, "WebSocketBase::ProcessRead : " + inStr + " Len : " + FString::FromInt( len ) );
 			pWebSocketBase->ProcessRead( (const char*)in, (int)len );
 		}	break;
 
